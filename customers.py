@@ -19,4 +19,4 @@ class Customer:
 			print "Not enough money!"	
 
 	def toString(self):
-		return self.username+" "+self.password+" "+str(self.money)+"\n"		
+		return self.username+" "+self.password+" "+str(self.money)	
