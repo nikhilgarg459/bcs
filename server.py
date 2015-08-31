@@ -11,4 +11,5 @@ while True:
    print 'Got connection from', addr
    c.send('Thank you for connecting')
    c.close()
-   
+
+#Added by nishant garg
