@@ -25,7 +25,7 @@ try:
 		if(user == attribs[0] and passw == attribs[1]):
 			client.send('Login successful!')
 			client.send('1')
-			empl = Employee(user,passw)
+			empl = Employee(user, passw)
 			while True:
 				client.send('1 Add new Account\n2 Delete Account\n3 Change Password\n4 Logout\nPlease enter ypur choice: ')
 				choice = client.recv(1024)
@@ -37,7 +37,7 @@ try:
 					password = client.recv(1024)
 					client.send("Intial money: Rs")
 					money = client.recv(1024)
-					client.send(empl.add_Account(username,password,money))
+					client.send(empl.add_Account(username, password, money))
 				elif choice == '2':
 					client.send('1')
 					client.send('Userid to be deleted: ')
@@ -49,8 +49,8 @@ try:
 					username = client.recv(1024)
 					client.send("New Password: ")
 					password = client.recv(1024)
-					client.send(empl.change_Password(username,password))
-				elif choice =='4':
+					client.send(empl.change_Password(username, password))
+				elif choice == '4':
 					client.send('4')
 					client.send('Logout Successful')
 					break
