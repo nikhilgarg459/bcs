@@ -12,29 +12,25 @@ class Employee:
 		self.username = username 
 		self.password = password
 
-	def  add_Account(self):
-		user=raw_input("Create username: ")
-		passw=raw_input("Create password: ")
-		money=int(input("Intial money: Rs"))
+	def  add_Account(self,user,passw,money):
 		self.update_Database(Customer(user,passw,money).toString(),"a+")
-		print "Account added successfully!"
+		return "Account added successfully!"
 
 	def  delete_Account(self,user):	
 		j=self.search_User(user)
 		if(j==1):
-			print "Account deleted successfully!"
+			return "Account deleted successfully!"
 		else:
-			print "No user with username "+user	
+			return "No user with username "+user	
 
-	def change_Password(self,user):			
+	def change_Password(self,user,passw):			
 		j=self.search_User(user)
 		if(j==0):
-			print "User "+user+" not found"
+			return "User "+user+" not found"
 		else:
-			passw=raw_input("Create password: ")
 			p=found_user.split(' ')
 			self.update_Database(Customer(user,passw,p[2]).toString(),"a+")
-			print "Password change successfully!"
+			return "Password change successfully!"
 	
 	def search_User(self,user):
 		with open ("custom.txt", "r") as myfile:
@@ -60,8 +56,3 @@ class Employee:
 		f=open('custom.txt',attr)
 		f.write(users+"\n")
 		f.close()
-
-e=Employee("niks","nik")
-e.add_Account()
-e.delete_Account("Arnav")
-e.change_Password("ankur")
