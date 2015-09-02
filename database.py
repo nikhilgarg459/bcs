@@ -5,6 +5,10 @@ FOR ACCESSING DATABASE
 """
 class Database:
 
+	def __init__(self, username, password):
+		self.username = username 
+		self.password = password
+
 	def search_User(self, user):
 		with open ("custom.txt", "r") as myfile:
 			found_user = None
