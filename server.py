@@ -6,10 +6,11 @@ This class provide server side access to application.
 from employee import Employee
 from customers import Customer
 from logger import Logger
-import socket    
+import socket
 import time
-import thread           
-    
+import thread
+
+
 def start(client, addr):
     print "Accepted connection from: ", addr
     try:
@@ -26,24 +27,24 @@ def start(client, addr):
         if j == 1:
             client.send('Login successful!')
             time.sleep(1)
-            if typ == "Employee":    
+            if typ == "Employee":
                 employee_process(client, user, passw)
             else:
-                customer_process(client, user, passw, money, typ)   
-        else:   
+                customer_process(client, user, passw, money, typ)
+        else:
             client.send('Wrong username or password!')
             time.sleep(1)
             client.send('0')
             time.sleep(1)
     except Exception,e:
-        print e.args 
-    finally:            
-        client.close()    
+        print e.args
+    finally:
+        client.close()
 
 def connect():
     TCP_IP = '127.0.0.1'
     TCP_PORT = 5008
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)              
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((TCP_IP, TCP_PORT))
     sock.listen(3)
     while 1:
@@ -118,7 +119,7 @@ def employee_process(client, user, passw):
         elif choice == '2':
             deleteAccount(client, empl)
         elif choice == '3':
-            changePassword(client, empl)         
+            changePassword(client, empl)
         elif choice == '4':
             logout(client)
             break
@@ -139,7 +140,7 @@ def customer_process(client, user, passw, money, typ):
             withdrawMoney(client, custm)
         elif choice == '3':
             checkBalance(client, custm)
-        elif choice == '4':    
+        elif choice == '4':
             logout(client)
             break
         else:
@@ -154,7 +155,7 @@ def depositMoney(client, custm):
     client.send(custm.deposit(int(amount)))
     time.sleep(1)
 
-def withdrawMoney(client, custm):    
+def withdrawMoney(client, custm):
     client.send('1')
     time.sleep(1)
     client.send('Enter amount: ')
@@ -167,7 +168,6 @@ def checkBalance(client, custm):
     client.send('5')
     time.sleep(1)
     client.send(custm.check_Balance())
-    time.sleep(1)         
+    time.sleep(1)
 
-connect()    
-  
+connect()
