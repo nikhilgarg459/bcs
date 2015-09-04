@@ -4,6 +4,7 @@ __doc__ = """
 This class provide server side access to application.
 """
 from employee import Employee
+from customers import Customer
 from logger import Logger
 import socket    
 import time
@@ -21,9 +22,14 @@ def start(client, addr):
         time.sleep(1)
         passw = client.recv(1024)
         log = Logger()
-        j, typ=log.check_Credentials(user, passw)
-        if j == 1 and typ == "Employee":
-            employee_process(client, user, passw)               
+        j, money, typ=log.check_Credentials(user, passw)
+        if j == 1:
+            client.send('Login successful!')
+            time.sleep(1)
+            if typ == "Employee":    
+                employee_process(client, user, passw)
+            else:
+                customer_process(client, user, passw, money, typ)   
         else:   
             client.send('Wrong username or password!')
             time.sleep(1)
@@ -54,7 +60,7 @@ def addNewAccount(client, empl):
     client.send("Create Password: ")
     time.sleep(1)
     password = client.recv(1024)
-    client.send("Intial money: Rs")
+    client.send("Intial money: Rs. ")
     time.sleep(1)
     money = client.recv(1024)
     client.send("Type: 1.Employee 2.Customer: ")
@@ -100,8 +106,6 @@ def wrongChoice(client):
     time.sleep(1)
 
 def employee_process(client, user, passw):
-    client.send('Login successful!')
-    time.sleep(1)
     client.send('1')
     time.sleep(1)
     empl = Employee(user, passw)
@@ -120,6 +124,50 @@ def employee_process(client, user, passw):
             break
         else:
             wrongChoice(client)
+
+def customer_process(client, user, passw, money, typ):
+    client.send('1')
+    time.sleep(1)
+    custm = Customer(user, passw, money, typ)
+    while True:
+        client.send('1 Deposit\n2 Withdraw\n3 Check Balance\n4 Logout\nPlease enter ypur choice: ')
+        time.sleep(1)
+        choice = client.recv(1024)
+        if choice == '1':
+            depositMoney(client, custm)
+        elif choice == '2':
+            withdrawMoney(client, custm)
+        elif choice == '3':
+            checkBalance(client, custm)
+        elif choice == '4':    
+            logout(client)
+            break
+        else:
+            wrongChoice(client)
+
+def depositMoney(client, custm):
+    client.send('1')
+    time.sleep(1)
+    client.send('Enter amount: ')
+    time.sleep(1)
+    amount = client.recv(1024)
+    client.send(custm.deposit(int(amount)))
+    time.sleep(1)
+
+def withdrawMoney(client, custm):    
+    client.send('1')
+    time.sleep(1)
+    client.send('Enter amount: ')
+    time.sleep(1)
+    amount = client.recv(1024)
+    client.send(custm.withdraw(int(amount)))
+    time.sleep(1)
+
+def checkBalance(client, custm):
+    client.send('5')
+    time.sleep(1)
+    client.send(custm.check_Balance())
+    time.sleep(1)         
 
 connect()    
   
