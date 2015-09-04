@@ -19,7 +19,7 @@ try:
     sock.send(raw_input(recvd))    #Password nikhil   #From emp.txt  
     time.sleep(1)
     print sock.recv(1024)
-    recvd=sock.recv(1024)
+    recvd = sock.recv(1024)
     if recvd == '1':                    #Login Successful   
         while True:
             recvd = sock.recv(1024)     #Get choices
@@ -50,14 +50,15 @@ try:
                 print sock.recv(1024)         #Password change successfully! || No user with username #in custom.txt
             elif recvd == '1':
                 recvd = sock.recv(1024)
-                sock.send(raw_input(recvd))  #Userid to be deleted: # from custom.txt
+                sock.send(raw_input(recvd))  #Userid to be deleted: # from custom.txt  #Enter amount:
                 time.sleep(1)
                 print sock.recv(1024)        #Account deleted successfully!" || User not found in custom.txt
             elif recvd == '6':
-                print sock.recv(1024)         #Logout Successful  
+                print sock.recv(1024)         #Logout Successful  #Check Balance
                 break
             else:
                 print sock.recv(1024)         #Wrong Choice!
+    
 except Exception, e:
     print e.args                        
 finally:    

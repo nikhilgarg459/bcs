@@ -12,5 +12,6 @@ class Logger:
 		if j == 1:
 			userdetails = found_user.split(' ')
 			if pasw == userdetails[1]:
-				return 1, userdetails[3]
+				return 1, userdetails[2], userdetails[3]
 		return 0, None		
+		

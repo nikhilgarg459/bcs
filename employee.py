@@ -37,4 +37,3 @@ class Employee:
 			datab.update_User(Customer(user, passw, p[2], p[3]).toString())
 			return "Password change successfully!"
 	
-	
