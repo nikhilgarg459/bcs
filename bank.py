@@ -30,12 +30,16 @@ class Account:
 class Bank(SingletonDataStore):
 
     def __init__(self, filename):
-        super(Bank, self).__init__(filename)
+        if self.initialized:
+            return
+        print "Bank DB initialized..."
+        self.initialized = True
+        super(Bank, self).__init__(filename=filename)
         self.accounts = dict()
-        self.save()
+        self.init()
 
     def addAccount(self, account):
-        with cls.__singleton_lock:
+        with self.__class__.__singleton_lock:
             if account.email in self.accounts:
                 return 0
             self.accounts[account.email] = account
@@ -43,30 +47,31 @@ class Bank(SingletonDataStore):
             return 1
 
     def deleteAccount(self, email):
-        with cls.__singleton_lock:
+        with self.__class__.__singleton_lock:
             if email in self.accounts:
                 del self.accounts[email]
                 self.save()
                 return 1
             return 0
 
-    def accessAccount(self, email):
-        with cls.__singleton_lock:
+    def withDraw(self, email, amount):
+        with self.__class__.__singleton_lock:
             if email in self.accounts:
-                return self.accounts[email]
+                return self.accounts[email].withDraw(amount)
+                self.save()
+            return None
+
+    def deposit(self, email, amount):
+        with self.__class__.__singleton_lock:
+            if email in self.accounts:
+                return self.accounts[email].deposit(amount)
+                self.save()
             return None
 
 
-def bank():
-    return Bank.instance(DB_FILE)
-
 if __name__ == '__main__':
 
-    objmain = Bank(DB_FILE)
-    obj1 = Bank.instance(DB_FILE)
-    obj2 = Bank.instance(DB_FILE)
+    obj1 = Bank(DB_FILE)
+    obj2 = Bank(DB_FILE)
 
     print obj1 is obj2
-    print objmain is obj1
-    print objmain is obj2
-
