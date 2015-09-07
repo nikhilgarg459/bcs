@@ -6,9 +6,7 @@ from client import Client
 __doc__  =  """
     * This module provide client-app class to access the bcs server. This extends the Client class.
     * This module can be run directly as follows to run as standalone client:
-
         > python app.py
-
     * Work in Progress *
     -> Add messaging protocol between server and client
     -> Shift CLI(Command-Line-Interface) logic to client
@@ -19,7 +17,7 @@ import time
 
 # Configuration
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 5008
+SERVER_PORT = 5010
 
 class BcsClient(Client):
 
@@ -31,33 +29,72 @@ class BcsClient(Client):
 
     def run(self):
         try:
-            print self.receive()     #Welcome to bcs
-            self.option()  #Username nikhil  #From emp.txt
-            self.option()    #Password nikhil   #From emp.txt
-            print self.receive()
+            print "Welcome to BCS!"
+            email = self.prompt("Email id: ")
+            password = self.prompt("Password: ")
+            self.request("authenticate", str(email + "," + password))
             recvd = self.receive()
-            if recvd == '1':                    #Login Successful
+            msg, typ = recvd.split(",")
+            print msg
+            
+            if typ == "Employee":
+                
                 while True:
-                    self.option()    #Get choices
-                    recvd = self.receive()
-                    if recvd == '4':
-                        self.option() #Create Userid:
-                        self.option() #Create Password:
-                        self.option()  #Intial money: Rs
-                        self.option()  #Intial money: Rs   I don't understand this part
-                        print self.receive()        #Account added successfully! # Added in custom.txt
-                    elif recvd == '2':
-                        self.option() #Userid #Any Userid from custom.txt
-                        self.option()   #New Password:
-                        print self.receive()         #Password change successfully! || No user with username #in custom.txt
-                    elif recvd == '1':
-                        self.option() #Userid to be deleted: # from custom.txt  #Enter amount:
-                        print self.receive()        #Account deleted successfully!" || User not found in custom.txt
-                    elif recvd == '6':
-                        print self.receive()         #Logout Successful  #Check Balance
-                        break
+                    
+                    choice = self.prompt("1 Add new Account\n2 Delete Account\n3 Change Password\n4 Logout\nPlease enter ypur choice: ")
+                    
+                    if choice == '1':
+                        name = self.prompt("Enter Name: ")
+                        email = self.prompt("Enter Email: ")
+                        password = self.prompt("Enter Password: ")
+                        typenum = self.prompt("Select Type 1.Employee 2.Customer: ")
+                        typ = "Employee"
+                        if typenum == 2:
+                            typ = "Customer"
+                        self.request("addAccount", str(name + "," + email + "," + password + "," + typ))
+                        self.response()
+
+                    elif choice == '2':
+                        email = self.prompt("Enter Email: ")
+                        self.request("deleteAccount", email)
+                        self.response()
+
+                    elif choice == '3':
+                        email = self.prompt("Enter Email: ")
+                        password = self.prompt("Enter new Password: ")
+                        self.request("changePassword", str(email + "," + password))
+                        self.response()
+
+                    elif choice == '4':
+                        self.request("logout", "emdSession")
+                        break      
+
                     else:
-                        print self.receive()         #Wrong Choice!
+                        print "Wrong choice" 
+
+            elif typ == "Customer":
+
+                while True:
+                    
+                    choice = self.prompt("1 Deposit\n2 Withdraw\n3 Logout\nPlease enter ypur choice: ")
+                    
+                    if choice == '1':
+                        amount = self.prompt("Enter amount: Rs. ")
+                        self.request("deposit", amount)
+                        self.response()
+
+                    elif choice == '2':
+                        amount = self.prompt("Enter amount: Rs. ")
+                        self.request("withdraw", amount)
+                        self.response()
+
+                    elif choice == '4':
+                        self.request("logout", "emdSession")
+                        self.response()
+                        break
+
+                    else:
+                        print "Wrong choice"                     
 
         except Exception, e:
             print e.args

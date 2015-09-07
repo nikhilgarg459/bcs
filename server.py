@@ -3,47 +3,54 @@
 __doc__ = """
 This class provide server side access to application.
 """
-from employee import Employee
-from customers import Customer
-from logger import Logger
+from bank import Bank
+from bank import Account
+from config import DB_FILE
 import socket
-import time
 import thread
 
+TCP_IP = '127.0.0.1'
+TCP_PORT = 5010
 
 def start(client, addr):
     print "Accepted connection from: ", addr
     try:
-        client.send('Welcome to bcs')
-        time.sleep(1)
-        client.send('Username: ') #nikhil
-        time.sleep(1)
-        user = client.recv(1024)
-        client.send('Password: ')   #nikhil
-        time.sleep(1)
-        passw = client.recv(1024)
-        log = Logger()
-        j, money, typ = log.check_Credentials(user, passw)
-        if j == 1:
-            client.send('Login successful!')
-            time.sleep(1)
-            if typ == "Employee":
-                employee_process(client, user, passw)
-            else:
-                customer_process(client, user, passw, money, typ)
-        else:
-            client.send('Wrong username or password!')
-            time.sleep(1)
-            client.send('0')
-            time.sleep(1)
+        while True:
+            response = client.recv(1024)
+            msg, parameters = response.split(":")
+            obj = Bank(DB_FILE)
+            email = None
+
+            if msg == "authenticate":
+                email, msg = login(client, obj, parameters)
+                if msg != "Login Successful":
+                    break
+            
+            elif msg == "addAccount":
+                addAccount(client, obj, parameters)
+            
+            elif msg =="deleteAccount":
+                deleteAccount(client, obj, parameters)    
+            
+            elif msg == "changePassword":
+                changePassword(client, obj, parameters)            
+            
+            elif msg == "withdraw":
+                withdraw(client, obj, parameters)
+
+            elif msg == "deposit":
+                withdraw(withdraw, obj, parameters)    
+           
+            elif msg == "logout":  
+                logout(client)
+                break
+
     except Exception,e:
         print e.args
     finally:
         client.close()
 
 def connect():
-    TCP_IP = '127.0.0.1'
-    TCP_PORT = 5008
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((TCP_IP, TCP_PORT))
     sock.listen(3)
@@ -52,122 +59,40 @@ def connect():
         thread.start_new_thread(start, (client, addr))
     sock.close()
 
-def addNewAccount(client, empl):
-    client.send('4')
-    time.sleep(1)
-    client.send('Create Userid: ')
-    time.sleep(1)
-    username = client.recv(1024)
-    client.send("Create Password: ")
-    time.sleep(1)
-    password = client.recv(1024)
-    client.send("Intial money: Rs. ")
-    time.sleep(1)
-    money = client.recv(1024)
-    client.send("Type: 1.Employee 2.Customer: ")
-    time.sleep(1)
-    typenum = client.recv(1024)
-    typ = "Customer"
-    if typenum == '1':
-        typ = "Employee"
-    client.send(empl.add_Account(username, password, money, typ))
-    time.sleep(1)
 
-def deleteAccount(client, empl):
-    client.send('1')
-    time.sleep(1)
-    client.send('Userid to be deleted: ')
-    time.sleep(1)
-    username = client.recv(1024)
-    client.send(empl.delete_Account(username))
-    time.sleep(1)
+def login(client, obj, parameters):
+    email, passw = parameters.split(',')    
+    msg, typ = obj.login(email, passw)
+    respond(client, str(msg + "," + typ))
+    return email, msg
+    
+def addAccount(client, obj, parameters):
+    name, email, password, typ = parameters.split(',')
+    msg = obj.addAccount(Account(name, email, password, typ)) 
+    respond(client, msg)
 
-def changePassword(client, empl):
-    client.send('2')
-    time.sleep(1)
-    client.send('Userid: ')
-    time.sleep(1)
-    username = client.recv(1024)
-    client.send("New Password: ")
-    time.sleep(1)
-    password = client.recv(1024)
-    client.send(empl.change_Password(username, password))
-    time.sleep(1)
+def deleteAccount(client, obj, email):
+    msg = obj.deleteAccount(email)
+    respond(client, msg)
+
+def changePassword(client, obj, parameters):
+    email, password = parameters.split(',')
+    msg = obj.changePassword(email, password) 
+    respond(client, msg)
+    
 
 def logout(client):
-    client.send('6')
-    time.sleep(1)
-    client.send('Logout Successful')
-    time.sleep(1)
+    respond('Logout Successful')
 
-def wrongChoice(client):
-    client.send('5')
-    time.sleep(1)
-    client.send("Wrong Choice!")
-    time.sleep(1)
+def deposit(client, obj, email, amoount):
+    msg = obj.deposit(email, amount)
+    respond(client, msg)
 
-def employee_process(client, user, passw):
-    client.send('1')
-    time.sleep(1)
-    empl = Employee(user, passw)
-    while True:
-        client.send('1 Add new Account\n2 Delete Account\n3 Change Password\n4 Logout\nPlease enter ypur choice: ')
-        time.sleep(1)
-        choice = client.recv(1024)
-        if choice == '1':
-            addNewAccount(client, empl)
-        elif choice == '2':
-            deleteAccount(client, empl)
-        elif choice == '3':
-            changePassword(client, empl)
-        elif choice == '4':
-            logout(client)
-            break
-        else:
-            wrongChoice(client)
+def withdraw(client, obj, email, amoount):
+    msg = obj.withDraw(email, amount)
+    respond(client, msg)
 
-def customer_process(client, user, passw, money, typ):
-    client.send('1')
-    time.sleep(1)
-    custm = Customer(user, passw, money, typ)
-    while True:
-        client.send('1 Deposit\n2 Withdraw\n3 Check Balance\n4 Logout\nPlease enter ypur choice: ')
-        time.sleep(1)
-        choice = client.recv(1024)
-        if choice == '1':
-            depositMoney(client, custm)
-        elif choice == '2':
-            withdrawMoney(client, custm)
-        elif choice == '3':
-            checkBalance(client, custm)
-        elif choice == '4':
-            logout(client)
-            break
-        else:
-            wrongChoice(client)
-
-def depositMoney(client, custm):
-    client.send('1')
-    time.sleep(1)
-    client.send('Enter amount: ')
-    time.sleep(1)
-    amount = client.recv(1024)
-    client.send(custm.deposit(int(amount)))
-    time.sleep(1)
-
-def withdrawMoney(client, custm):
-    client.send('1')
-    time.sleep(1)
-    client.send('Enter amount: ')
-    time.sleep(1)
-    amount = client.recv(1024)
-    client.send(custm.withdraw(int(amount)))
-    time.sleep(1)
-
-def checkBalance(client, custm):
-    client.send('5')
-    time.sleep(1)
-    client.send(custm.check_Balance())
-    time.sleep(1)
+def respond(client, msg):
+    client.send(msg)
 
 connect()

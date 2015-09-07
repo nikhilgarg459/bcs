@@ -4,9 +4,6 @@
 __doc__  =  """
     * This module provides a general client class which can be extended to
        use in any application that involves sending messages using sockets.
-
-    * Work in Progress *
-    -> Remove 'sleep 1' from send method and do it in a 'proper' way.
 """
 
 import socket
@@ -21,7 +18,7 @@ class Client(object):
     def __init__(self, server_ip, server_port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((server_ip, server_port))
-
+                
     def receive(self):
         msg = None
         try:
@@ -43,12 +40,14 @@ class Client(object):
     def send(self, msg):
         try:
             self.sock.send(msg)
-            time.sleep(1)
         except Exception as e:
             print "Error sending message:  %s" % msg
             raise e
 
-    def option(self):
-        prompt_message = self.receive()
-        user_input = self.prompt(prompt_message)
-        self.send(user_input)
+    def request(self, msg, parameters):  
+        self.send(str(msg + ":" + parameters))
+
+    def response(self): 
+        reply = self.receive()
+        print reply    
+        
