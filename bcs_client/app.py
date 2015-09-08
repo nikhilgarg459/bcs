@@ -32,12 +32,10 @@ class BcsClient(Client):
             print "Welcome to BCS!"
             email = self.prompt("Email id: ")
             password = self.prompt("Password: ")
-            self.request("authenticate", str(email + "," + password))
-            recvd = self.receive()
-            msg, typ = recvd.split(",")
-            print msg
+            self.request("authenticate", str("email=" + email + "," + "password=" + password))
+            user = self.response()
             
-            if typ == "Employee":
+            if user['type'] == "Employee":
                 
                 while True:
                     
@@ -49,30 +47,31 @@ class BcsClient(Client):
                         password = self.prompt("Enter Password: ")
                         typenum = self.prompt("Select Type 1.Employee 2.Customer: ")
                         typ = "Employee"
-                        if typenum == 2:
+                        if typenum == '2':
                             typ = "Customer"
-                        self.request("addAccount", str(name + "," + email + "," + password + "," + typ))
+                        self.request("addAccount", str("name=" + name + "," + "email=" + email + "," + "password=" + password + "," + "type=" + typ))
                         self.response()
 
                     elif choice == '2':
                         email = self.prompt("Enter Email: ")
-                        self.request("deleteAccount", email)
+                        self.request("deleteAccount",str("email=" + email))
                         self.response()
 
                     elif choice == '3':
                         email = self.prompt("Enter Email: ")
                         password = self.prompt("Enter new Password: ")
-                        self.request("changePassword", str(email + "," + password))
+                        self.request("changePassword", str("email=" + email + "," + "password=" + password))
                         self.response()
 
                     elif choice == '4':
-                        self.request("logout", "emdSession")
+                        self.request("logout", "")
+                        self.response()
                         break      
 
                     else:
                         print "Wrong choice" 
 
-            elif typ == "Customer":
+            elif user['type'] == "Customer":
 
                 while True:
                     
@@ -80,16 +79,16 @@ class BcsClient(Client):
                     
                     if choice == '1':
                         amount = self.prompt("Enter amount: Rs. ")
-                        self.request("deposit", amount)
+                        self.request("deposit", str("amount=" + amount))
                         self.response()
 
                     elif choice == '2':
                         amount = self.prompt("Enter amount: Rs. ")
-                        self.request("withdraw", amount)
+                        self.request("withdraw", str("amount=" + amount))
                         self.response()
 
-                    elif choice == '4':
-                        self.request("logout", "emdSession")
+                    elif choice == '3':
+                        self.request("logout", "")
                         self.response()
                         break
 

@@ -18,19 +18,19 @@ class Account:
         self.money = 0
 
     def deposit(self, amount):
-        self.money += amount
-        return "Money deposit Succesfull! New Balance: " + str(self.money)
+        self.money += int(amount)
+        return "Money deposit Succesfull! New Balance Rs. " + str(self.money)
 
     def withDraw(self, amount):
-        if amount <= self.money:
-            self.money -= amount
-            return "Money withdraw Succesfull! New Balance: " + str(self.money)
+        if int(amount) <= self.money:
+            self.money -= int(amount)
+            return "Money withdraw Succesfull! New Balance Rs. " + str(self.money)
         return "Sorry you can withdraw max of Rs. " + str(self.money)
  
     def login(self, password):
         if password == self.password:
             return "Login Successful", self.type
-        return "Wrong password", "None"      
+        return "Wrong password", "Invalid"      
 
     def changePassword(self, password):
             self.password = password
@@ -38,7 +38,7 @@ class Account:
 
 class Bank(SingletonDataStore):
 
-    def __init__(self, filename):
+    def __init__(self, filename=DB_FILE):
         if self.initialized:
             return
         print "Bank DB initialized..."
@@ -48,7 +48,7 @@ class Bank(SingletonDataStore):
         self.init()
 
     def addAccount(self, account):
-        with self.__class__.__singleton_lock:
+        with self.__class__._singleton_lock:
             if account.email in self.accounts:
                 return "Email id already registered"
             self.accounts[account.email] = account
@@ -56,7 +56,7 @@ class Bank(SingletonDataStore):
             return "Account added Successfully"
 
     def deleteAccount(self, email):
-        with self.__class__.__singleton_lock:
+        with self.__class__._singleton_lock:
             if email in self.accounts:
                 del self.accounts[email]
                 self.save()
@@ -64,38 +64,43 @@ class Bank(SingletonDataStore):
             return "No account with this Email id"
 
     def withDraw(self, email, amount):
-        with self.__class__.__singleton_lock:
+        with self.__class__._singleton_lock:
             if email in self.accounts:
-                return self.accounts[email].withDraw(amount)
+                msg = self.accounts[email].withDraw(amount)
                 self.save()
-            return None
+                return msg
+            return "Transaction failed"
 
     def deposit(self, email, amount):
-        with self.__class__.__singleton_lock:
+        with self.__class__._singleton_lock:
             if email in self.accounts:
-                return self.accounts[email].deposit(amount)
+                msg = self.accounts[email].deposit(amount)
                 self.save()
-            return None
+                return msg
+            return "Transaction failed"
 
     def login(self, email, password):
-        with self.__class__.__singleton_lock:
+        with self.__class__._singleton_lock:
             if email in self.accounts:
-                print self.accounts[email].login(password)
-                self.save()
-            print "Wrong Username", "None"
+                return self.accounts[email].login(password)
+            return "Wrong Username", "Non"
 
     def changePassword(self, email, password):
-         with self.__class__.__singleton_lock:
+         with self.__class__._singleton_lock:
             if email in self.accounts:
-                return self.accounts[email].changePassword(password)
+                msg = self.accounts[email].changePassword(password)
                 self.save()
+                return msg
             return "No account with this Email id"
                           
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
 
-    obj1 = Bank(DB_FILE)
-    obj2 = Bank(DB_FILE)
+ #   obj1 = Bank()
+    #obj2 = Bank(DB_FILE)
     #acc = Account("Nikhil", "nik72", "niks", "Employee")
+    #acc = Account("Osho", "osh", "osh", "Customer")
     #obj1.addAccount(acc)
-    print obj1 is obj2
+    #obj1.withDraw("aks", 500)
+    #obj1.deposit("aks", 500)
+    #print obj1 is obj2

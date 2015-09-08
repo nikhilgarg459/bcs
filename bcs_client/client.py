@@ -47,7 +47,20 @@ class Client(object):
     def request(self, msg, parameters):  
         self.send(str(msg + ":" + parameters))
 
+    def getParam(self, params):
+        parameters = dict()
+        paramArray = params.split(',')
+        for param in paramArray:
+            key, value = param.split('=')
+            parameters[key] = value
+        return parameters    
+
     def response(self): 
         reply = self.receive()
-        print reply    
+        msg, params = reply.split(":")
+        print msg
+        if params != "":
+            parameters = self.getParam(params)
+            return parameters
+        
         

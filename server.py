@@ -5,7 +5,6 @@ This class provide server side access to application.
 """
 from bank import Bank
 from bank import Account
-from config import DB_FILE
 import socket
 import thread
 
@@ -15,31 +14,31 @@ TCP_PORT = 5010
 def start(client, addr):
     print "Accepted connection from: ", addr
     try:
+        email = None
         while True:
             response = client.recv(1024)
-            msg, parameters = response.split(":")
-            obj = Bank(DB_FILE)
-            email = None
+            msg, params = response.split(":")
+            parameters = getParam(params)
 
             if msg == "authenticate":
-                email, msg = login(client, obj, parameters)
+                email, msg = login(client, parameters)
                 if msg != "Login Successful":
                     break
             
             elif msg == "addAccount":
-                addAccount(client, obj, parameters)
+                addAccount(client, parameters)
             
             elif msg =="deleteAccount":
-                deleteAccount(client, obj, parameters)    
+                deleteAccount(client, parameters)    
             
             elif msg == "changePassword":
-                changePassword(client, obj, parameters)            
+                changePassword(client, parameters)            
             
             elif msg == "withdraw":
-                withdraw(client, obj, parameters)
+                withdraw(client, email, parameters)
 
             elif msg == "deposit":
-                withdraw(withdraw, obj, parameters)    
+                deposit(client, email, parameters)    
            
             elif msg == "logout":  
                 logout(client)
@@ -49,6 +48,15 @@ def start(client, addr):
         print e.args
     finally:
         client.close()
+
+def getParam(params):
+    parameters = dict()
+    if params != "":
+        paramArray = params.split(',')
+        for param in paramArray:
+            key, value = param.split('=')
+            parameters[key] = value
+        return parameters
 
 def connect():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,39 +68,36 @@ def connect():
     sock.close()
 
 
-def login(client, obj, parameters):
-    email, passw = parameters.split(',')    
-    msg, typ = obj.login(email, passw)
-    respond(client, str(msg + "," + typ))
-    return email, msg
+def login(client, parameters):    
+    msg, typ = Bank().login(parameters['email'],parameters['password'])
+    respond(client, msg, str("type=" + typ))
+    return parameters['email'], msg
     
-def addAccount(client, obj, parameters):
-    name, email, password, typ = parameters.split(',')
-    msg = obj.addAccount(Account(name, email, password, typ)) 
-    respond(client, msg)
+def addAccount(client, parameters):
+    msg = Bank().addAccount(Account(parameters['name'], parameters['email'], parameters['password'], parameters['type'])) 
+    respond(client, msg, "")
 
-def deleteAccount(client, obj, email):
-    msg = obj.deleteAccount(email)
-    respond(client, msg)
+def deleteAccount(client, parameters):
+    msg = Bank().deleteAccount(parameters['email'])
+    respond(client, msg, "")
 
-def changePassword(client, obj, parameters):
-    email, password = parameters.split(',')
-    msg = obj.changePassword(email, password) 
-    respond(client, msg)
+def changePassword(client, parameters):
+    msg = Bank().changePassword(parameters['email'], parameters['password']) 
+    respond(client, msg, "")
     
 
 def logout(client):
-    respond('Logout Successful')
+    respond(client, "Logout Successful", "")
 
-def deposit(client, obj, email, amoount):
-    msg = obj.deposit(email, amount)
-    respond(client, msg)
+def deposit(client, email, parameters):
+    msg = Bank().deposit(email, parameters['amount'])
+    respond(client, msg, "")
 
-def withdraw(client, obj, email, amoount):
-    msg = obj.withDraw(email, amount)
-    respond(client, msg)
+def withdraw(client, email, parameters):
+    msg = Bank().withDraw(email, parameters['amount'])
+    respond(client, msg, "")
 
-def respond(client, msg):
-    client.send(msg)
+def respond(client, msg, parameters):
+    client.send(str(msg + ":" + parameters))
 
 connect()

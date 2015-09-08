@@ -11,8 +11,8 @@ import threading
 
 class SingletonDataStore(object):
 
-    __singleton_lock = threading.Lock()
-    __singleton_instance = None
+    _singleton_lock = threading.Lock()
+    _singleton_instance = None
 
     def __init__(self, filename):
         self.filename = filename
@@ -30,14 +30,14 @@ class SingletonDataStore(object):
         if not os.path.exists(self.filename):
             return
         f = open(self.filename, 'rb')
-        self.__class__.__singleton_instance.__dict__.update(pickle.load(f))
+        self.__class__._singleton_instance.__dict__.update(pickle.load(f))
         f.close()
 
     @classmethod
     def __new__(cls, *args, **kwargs):
-        if not cls.__singleton_instance:
-            with cls.__singleton_lock:
-                if not cls.__singleton_instance:
-                    cls.__singleton_instance = object.__new__(cls, *args, **kwargs)
-                    cls.__singleton_instance.initialized = False
-        return cls.__singleton_instance
+        if not cls._singleton_instance:
+            with cls._singleton_lock:
+                if not cls._singleton_instance:
+                    cls._singleton_instance = object.__new__(cls, *args, **kwargs)
+                    cls._singleton_instance.initialized = False
+        return cls._singleton_instance
