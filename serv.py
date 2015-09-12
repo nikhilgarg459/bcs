@@ -10,20 +10,22 @@ __doc__  =  """
 """
 
 import socket
-
+import time
 # Configuration
 MESSAGE_LENGTH = 1024
 
-class Server(object):
+class BcsServer(object):
 
-	def receive(self):
+	def receive(self, client):
 	    msg = None
 	    try:
-	        msg = self.client.recv(MESSAGE_LENGTH)
+	        msg = client.recv(MESSAGE_LENGTH)
+	        #print "From Client: " + msg
+	        #print msg
 	        msg, params = msg.split(":")
 	        parameters = self.getParam(params)
 	    except Exception as e:
-	        print "Error while receing message from server"
+	        print "Error while receing message from client"
 	        raise e
 	    return msg, parameters
 
@@ -37,37 +39,39 @@ class Server(object):
 		    return parameters
 		return ""    
 
-	def setClient(self, client):
-		self.client = client		
-
-	def login(self, parameters):    
+	def login(self, client, parameters):    
 	    msg, typ = Bank().login(parameters['email'],parameters['password'])
-	    self.respond(msg, str("type=" + typ))
+	    self.respond(client, msg, str("type=" + typ))
 	    return parameters['email'], msg
 	    
-	def addAccount(self, parameters):
+	def addAccount(self, client, parameters):
 	    msg = Bank().addAccount(Account(parameters['name'], parameters['email'], parameters['password'], parameters['type'])) 
-	    self.respond(msg, "")
+	    self.respond(client, msg, "")
 
-	def deleteAccount(self, parameters):
+	def deleteAccount(self, client, parameters):
 	    msg = Bank().deleteAccount(parameters['email'])
-	    self.respond(msg, "")
+	    self.respond(client, msg, "")
 
-	def changePassword(self, parameters):
+	def changePassword(self, client, parameters):
 	    msg = Bank().changePassword(parameters['email'], parameters['password']) 
 	    self.respond(msg, "")
 	    
-	def logout(self):
-	    self.respond("Logout Successful", "")
-	    self.client.close()
+	def logout(self, client):
+	    self.respond(client, "Logout Successful", "")
+	    client.close()
 
-	def deposit(self, email, parameters):
+	def deposit(self, client, email, parameters):
 	    msg = Bank().deposit(email, parameters['amount'])
-	    self.respond(msg, "")
+	    self.respond(client, msg, "")
 
-	def withdraw(self, email, parameters):
+	def withdraw(self, client, email, parameters):
 	    msg = Bank().withDraw(email, parameters['amount'])
-	    self.respond(msg, "")
+	    self.respond(client, msg, "")
 
-	def respond(self, msg, parameters):
-	    self.client.send(str(msg + ":" + parameters))
+	def getPassbook(self, client, email):
+		msg = Bank().getPassbook(email)
+		self.respond(client, msg, "")
+
+	def respond(self, client, msg, parameters):
+		#print str("To client: " + msg + ":" + parameters)
+		client.send(str(msg + ":" + parameters))

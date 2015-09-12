@@ -7,6 +7,7 @@ __doc__  =  """
 
 from config import DB_FILE
 from datastore import SingletonDataStore
+import time
 
 class Account:
 
@@ -15,15 +16,18 @@ class Account:
         self.email = email
         self.password = password
         self.type = account_type
-        self.money = 0
+        self.money = 0 
+        self.passbook = ""
 
     def deposit(self, amount):
         self.money += int(amount)
+        self.passbook = self.passbook + str(time.strftime("%d/%m/%Y")) + " " + str(time.strftime("%H.%M.%S")) + " " + "Credit Rs. " + str(amount) + " Debit Rs. 0 Balance Rs. " + str(self.money) + "\n"
         return "Money deposit Succesfull! New Balance Rs. " + str(self.money)
 
     def withDraw(self, amount):
         if int(amount) <= self.money:
             self.money -= int(amount)
+            self.passbook = self.passbook + str(time.strftime("%d/%m/%Y")) + " " + str(time.strftime("%H.%M.%S")) + " " + "Credit Rs. 0 Debit Rs. " + str(amount) + " Balance Rs. " + str(self.money) + "\n"
             return "Money withdraw Succesfull! New Balance Rs. " + str(self.money)
         return "Sorry you can withdraw max of Rs. " + str(self.money)
  
@@ -35,6 +39,9 @@ class Account:
     def changePassword(self, password):
             self.password = password
             return "Password change Successfully"
+
+    def getPassbook(self):
+        return self.passbook.strip()        
 
 class Bank(SingletonDataStore):
 
@@ -82,7 +89,9 @@ class Bank(SingletonDataStore):
     def login(self, email, password):
         with self.__class__._singleton_lock:
             if email in self.accounts:
-                return self.accounts[email].login(password)
+                msg = self.accounts[email].login(password)
+                self.save()
+                return msg
             return "Wrong Username", "Non"
 
     def changePassword(self, email, password):
@@ -92,7 +101,14 @@ class Bank(SingletonDataStore):
                 self.save()
                 return msg
             return "No account with this Email id"
-                          
+    
+    def getPassbook(self, email):
+        with self.__class__._singleton_lock:
+            if email in self.accounts:
+                msg = self.accounts[email].getPassbook()
+                self.save()
+                return msg
+            return "No account with this Email id"                          
 
 #if __name__ == '__main__':
 

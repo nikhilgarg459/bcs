@@ -13,6 +13,7 @@ __doc__  =  """
 """
 
 import socket
+import sys
 
 # Configuration
 SERVER_IP = '127.0.0.1'
@@ -47,12 +48,14 @@ class BcsClient(Client):
 
             elif user['type'] == "Customer":
                 while True:
-                    choice = self.prompt("1 Deposit\n2 Withdraw\n3 Logout\nPlease enter ypur choice: ")
+                    choice = self.prompt("1 Deposit\n2 Withdraw\n3 Get Passbook\n4 Logout\nPlease enter ypur choice: ")
                     if choice == '1':
                         self.deposit()
                     elif choice == '2':
                         self.withdraw()
                     elif choice == '3':
+                        self.getPassbook()    
+                    elif choice == '4':
                         self.logout()
                         break
                     else:
@@ -61,6 +64,84 @@ class BcsClient(Client):
         except Exception, e:
             print e.args
             self.sock.close()
+
+    def response(self): 
+        reply = self.receive()
+        #print "From Server: " + reply
+        msg, params = reply.split(":")
+        print msg
+        if params != "":
+            parameters = self.getParam(params)
+            return parameters
+        return ""   
+
+    def request(self, msg, parameters):  
+        #print str("To Server: " + msg + ":" + parameters)
+        self.send(str(msg + ":" + parameters))
+
+    def getParam(self, params):
+        parameters = dict()
+        paramArray = params.split(',')
+        for param in paramArray:
+            key, value = param.split('=')
+            parameters[key] = value
+        return parameters    
+        
+    def login(self):
+        email = self.prompt("Email id: ")
+        password = self.prompt("Password: ")
+        #print "Trying to connect......."
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.server_ip, self.server_port))
+        connection = self.response()
+        if connection['type'] == "valid":
+            self.request("authenticate", str("email=" + email + "," + "password=" + password))
+            user = self.response()
+            return user
+        self.sock.close()    
+        return connection    
+
+    def getPassbook(self):        
+        self.request("getPassbook", "")
+        self.response()
+
+    def addAccount(self):
+        name = self.prompt("Enter Name: ")
+        email = self.prompt("Enter Email: ")
+        password = self.prompt("Enter Password: ")
+        typenum = self.prompt("Select Type 1.Employee 2.Customer: ")
+        typ = "Employee"
+        if typenum == '2':
+            typ = "Customer"
+        self.request("addAccount", str("name=" + name + "," + "email=" + email + "," + "password=" + password + "," + "type=" + typ))
+        self.response()    
+
+    def deleteAccount(self):
+        email = self.prompt("Enter Email: ")
+        self.request("deleteAccount",str("email=" + email))
+        self.response()    
+
+    def changePassword(self):
+        email = self.prompt("Enter Email: ")
+        password = self.prompt("Enter new Password: ")
+        self.request("changePassword", str("email=" + email + "," + "password=" + password))
+        self.response()    
+
+    def logout(self):
+        self.request("logout", "")
+        self.response()
+        self.sock.close()    
+
+    def deposit(self):                
+        self.transact("deposit") 
+
+    def withdraw(self):
+        self.transact("withdraw")        
+    
+    def transact(self, typ):
+        amount = self.prompt("Enter amount: Rs. ")
+        self.request(typ, str("amount=" + amount))
+        self.response()            
 
 if __name__ == '__main__':
     client_app = BcsClient()
