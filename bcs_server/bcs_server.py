@@ -45,8 +45,8 @@ class BcsServer(Server):
                     conn.close()
                     break
         except Exception as e:
-            log.debug(e)
-            log.info('Error after menu ' + str(addr))
+            log.error(e)
+            log.error('Error after menu ' + str(addr))
         finally:  
             self.count -= 1  
             conn.close()

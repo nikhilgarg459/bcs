@@ -35,8 +35,8 @@ class Server(object):
             msg, params = msg.split("~")
             parameters = self.extractParams(params)
         except Exception as e:
-            log.debug('Error while receing message from client')
-            log.debug(e)
+            log.error('Error while receing message from client')
+            log.error(e)
             raise e
         return msg, parameters
 

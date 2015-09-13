@@ -45,5 +45,3 @@ class Client(object):
         except Exception as e:
             print "Error sending message:  %s" % msg
             raise e
-
-
