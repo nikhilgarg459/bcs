@@ -8,7 +8,7 @@ __doc__  =  """
 """
 
 from datetime import datetime
-
+from server_logger import log
 
 class Account:
 
@@ -57,4 +57,4 @@ class Account:
         return '\n'.join(['%s  :  %s  :  %s' % (tx[0], tx[1], tx[2]) for tx in self.passbook ])
 
     def __str__(self):
-        return '%s | %s | %s | %s' % (self.name, self.email, self.password, self.type)
+        return '%-15s %-20s  %-15s %-10s' % (self.name, self.email, self.password, self.type)

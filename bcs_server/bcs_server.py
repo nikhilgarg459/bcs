@@ -5,32 +5,31 @@ from bank import Bank
 from bank import Account
 
 __doc__  =  """
-    * This module provides a general server class which can be extended to
-       use in any application that involves sending messages using sockets.
+
 """
 
 import socket
 import time
 
 from server import Server
-
+from server_logger import log
 
 class BcsServer(Server):
 
     def __init__(self):
         super(BcsServer, self).__init__()
+        Bank()
 
-    def start(self, client, addr):
-        #self.setClient(client)
-        self.respond(client, "Welcome to Bcs",str("type=valid"))    
-        print "Accepted connection from: ", addr
+    def start(self, conn, addr):
+        self.respond(conn, "Welcome to Bcs",str("type=valid"))    
+        log.info('Session started with %s' % addr)
         try:
-            #email = None
             while True:
-                request_message, request_params = self.receive(client)
+                request_message, request_params = self.receive(conn)
                 # Get response message and parameters
                 response_params = None
                 response_msg = None
+                log.info('Request from %s -  %s' %(addr, request_message))
                 if request_message == "authenticate":
                     response_msg, account_type = Bank().login(request_params['email'],request_params['password'])
                     response_params = str("type=" + account_type)
@@ -39,17 +38,18 @@ class BcsServer(Server):
                 else:
                     response_msg, response_params = self.bank_operation(request_message, request_params)
                 # Respond to client
-                self.respond(client, response_msg, response_params)
+                self.respond(conn, response_msg, response_params)
+                log.info('Response to %s - %s' %(addr, response_msg))
                 # Close connection if authentication failed or logout
                 if "Login Unsuccessful" in response_msg or response_msg == "Logout Successful":
-                    client.close()
+                    conn.close()
                     break
-        except Exception,e:
-            print e.args
-            print "Error after menu " + str(addr)
+        except Exception as e:
+            log.debug(e)
+            log.info('Error after menu ' + str(addr))
         finally:  
             self.count -= 1  
-            client.close()
+            conn.close()
 
     def bank_operation(self, request_message, request_params):
         response_msg = None
@@ -62,7 +62,7 @@ class BcsServer(Server):
         elif request_message == "changePassword":
             response_msg = Bank().changePassword(request_params['email'], request_params['password'])          
         elif request_message == "withdraw":
-            print 'withDraw: %s' % str(request_params)
+            log.debug('withDraw: %s' % str(request_params))
             response_msg = Bank().withDraw(request_params['email'], request_params['amount'])
         elif request_message == "deposit":
             response_msg = Bank().deposit(request_params['email'], request_params['amount'])
@@ -72,4 +72,4 @@ class BcsServer(Server):
 
 if __name__ == '__main__':
     server_app = BcsServer()
-    server_app.connect()
+    server_app.listen()

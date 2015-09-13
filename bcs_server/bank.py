@@ -8,13 +8,14 @@ __doc__  =  """
 from config import DB_FILE, ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD
 from datastore import SingletonDataStore
 from account import Account
+from server_logger import log
 
 class Bank(SingletonDataStore):
 
     def __init__(self, filename=DB_FILE):
         if self.initialized:
             return
-        print "Bank DB initialized..."
+        log.info('Bank DB initialized...')
         self.initialized = True
         super(Bank, self).__init__(filename=filename)
         self.accounts = dict()
@@ -58,7 +59,6 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].login(password)
-                #self.save()
                 return msg
             return "Login Unsuccessful", "Non"
 
@@ -74,13 +74,13 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].getPassbook()
-                #self.save() # why do we need this ? This is a read operation
                 return msg
             return "No account with this Email id"                          
 
     def printLedger(self):
-        print 'Accounts in Bank:'
-        print '----------------'
+        print '\n',' *** Accounts in Bank ***'.center(67,' '), '\n'
+        print '    %-15s %-20s  %-15s %-10s' % ('Name', 'Email', 'Password', 'Account Type')
+        print '    %-15s %-20s  %-15s %-10s' % ('----', '-----', '--------', '------------')
         for account in self.accounts.values():
             print '    ' + str(account)
         print '\n'

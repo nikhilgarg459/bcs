@@ -2,13 +2,15 @@
 #-*-coding:utf8-*-
 
 __doc__ = """
-This class provide server side access to application.
+            This module provides a general server class which can be extended to
+       use in any application that involves sending messages using sockets.
 """
 
 import socket
 import thread
 
 from config import MESSAGE_LENGTH, TCP_IP, TCP_PORT, MAX_CONNECTIONS
+from server_logger import log
 
 class Server(object):
 
@@ -20,8 +22,8 @@ class Server(object):
 
     def respond(self, client, msg, parameters):
         #print str("To client: " + msg + ":" + parameters)
-        print 'msg: %s' % msg
-        print 'Parameters: %s' % parameters
+        log.debug('msg: %s' % msg)
+        log.debug('Parameters: %s' % parameters)
         if parameters == None:
             parameters = ""
         client.send(str(msg + "~" + parameters))
@@ -33,7 +35,8 @@ class Server(object):
             msg, params = msg.split("~")
             parameters = self.extractParams(params)
         except Exception as e:
-            print "Error while receing message from client"
+            log.debug('Error while receing message from client')
+            log.debug(e)
             raise e
         return msg, parameters
 
@@ -47,21 +50,24 @@ class Server(object):
             return parameters
         return None
 
-    def connect(self):
+    def listen(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Following line prevents this: socket.error: [Errno 48] Address already in use
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((TCP_IP, TCP_PORT))
         sock.listen(1)
+        log.info('Listening for connections...')
         while 1:
-            #while self.count > MAX_CONNECTIONS - 1:
-             #   pass
-            client, addr = sock.accept()     # Establish connection with client.
-            self.count += 1
-            if self.count > MAX_CONNECTIONS:
-                client.send("Server Busy,Try again Later~type=invalid")
-                self.count -= 1
-                client.close()
+            # Accept connection from client.
+            conn, addr = sock.accept()
+            address = '%s:%s' % addr
+            log.info('Connection request from %s' % address)    
+            if self.count == MAX_CONNECTIONS:
+                log.info('Max connections reached, request denied...')
+                conn.send("Server Busy,Try again Later~type=invalid")
+                conn.close()
             else:
-                thread.start_new_thread(self.start, (client, addr))
+                log.info('Request accepted, connecting...')
+                self.count += 1
+                thread.start_new_thread(self.start, (conn, address))
         sock.close()
