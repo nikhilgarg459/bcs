@@ -33,7 +33,8 @@ class BcsClient(Client):
             
             if user['type'] == "Employee":
                 while True:
-                    choice = self.prompt("1 Add new Account\n2 Delete Account\n3 Change Password\n4 Logout\nPlease enter ypur choice: ")
+                    employee_options = ['Add Account', 'Delete Account', 'Change Password', 'Logout']
+                    choice = self.prompt(self.genMenu(employee_options))
                     if choice == '1':
                         self.addAccount()
                     elif choice == '2':
@@ -48,7 +49,8 @@ class BcsClient(Client):
 
             elif user['type'] == "Customer":
                 while True:
-                    choice = self.prompt("1 Deposit\n2 Withdraw\n3 Get Passbook\n4 Logout\nPlease enter ypur choice: ")
+                    customer_options = ['Deposit', 'Withdraw', 'Passbook', 'Logout']
+                    choice = self.prompt(self.genMenu(customer_options))
                     if choice == '1':
                         self.deposit()
                     elif choice == '2':
@@ -68,7 +70,7 @@ class BcsClient(Client):
     def response(self): 
         reply = self.receive()
         #print "From Server: " + reply
-        msg, params = reply.split(":")
+        msg, params = reply.split("~")
         print msg
         if params != "":
             parameters = self.getParam(params)
@@ -77,7 +79,7 @@ class BcsClient(Client):
 
     def request(self, msg, parameters):  
         #print str("To Server: " + msg + ":" + parameters)
-        self.send(str(msg + ":" + parameters))
+        self.send(str(msg + "~" + parameters))
 
     def getParam(self, params):
         parameters = dict()
@@ -86,23 +88,28 @@ class BcsClient(Client):
             key, value = param.split('=')
             parameters[key] = value
         return parameters    
-        
+    
+    def genMenu(self, options):
+        menu = '\n'.join(['%d. %s' % (index+1, item) for index,item in enumerate(options)])        
+        return menu + "\nEnter your Choice: "
+
     def login(self):
-        email = self.prompt("Email id: ")
-        password = self.prompt("Password: ")
+        self.email = self.prompt("Email id: ")
+        self.password = self.prompt("Password: ")
         #print "Trying to connect......."
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.server_ip, self.server_port))
         connection = self.response()
         if connection['type'] == "valid":
-            self.request("authenticate", str("email=" + email + "," + "password=" + password))
+            self.request("authenticate", str("email=" + self.email + "," + "password=" + self.password))
             user = self.response()
             return user
         self.sock.close()    
         return connection    
 
     def getPassbook(self):        
-        self.request("getPassbook", "")
+        self.request("getPassbook", str("email=" + self.email))
+        print "         Date And Time : Credit : Debit"
         self.response()
 
     def addAccount(self):
@@ -140,7 +147,7 @@ class BcsClient(Client):
     
     def transact(self, typ):
         amount = self.prompt("Enter amount: Rs. ")
-        self.request(typ, str("amount=" + amount))
+        self.request(typ, str("amount=" + amount + "," + "email=" + self.email))
         self.response()            
 
 if __name__ == '__main__':

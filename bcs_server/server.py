@@ -24,13 +24,13 @@ class Server(object):
         print 'Parameters: %s' % parameters
         if parameters == None:
             parameters = ""
-        client.send(str(msg + ":" + parameters))
+        client.send(str(msg + "~" + parameters))
 
     def receive(self, client):
         msg = None
         try:
             msg = client.recv(MESSAGE_LENGTH)
-            msg, params = msg.split(":")
+            msg, params = msg.split("~")
             parameters = self.extractParams(params)
         except Exception as e:
             print "Error while receing message from client"
@@ -59,7 +59,7 @@ class Server(object):
             client, addr = sock.accept()     # Establish connection with client.
             self.count += 1
             if self.count > MAX_CONNECTIONS:
-                client.send("Server Busy,Try again Later:type=invalid")
+                client.send("Server Busy,Try again Later~type=invalid")
                 self.count -= 1
                 client.close()
             else:

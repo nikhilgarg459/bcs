@@ -58,7 +58,7 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].login(password)
-                self.save()
+                #self.save()
                 return msg
             return "Login Unsuccessful", "Non"
 
@@ -74,7 +74,7 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].getPassbook()
-                self.save() # why do we need this ? This is a read operation
+                #self.save() # why do we need this ? This is a read operation
                 return msg
             return "No account with this Email id"                          
 

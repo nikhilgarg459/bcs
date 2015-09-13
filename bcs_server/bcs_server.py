@@ -25,7 +25,7 @@ class BcsServer(Server):
         self.respond(client, "Welcome to Bcs",str("type=valid"))    
         print "Accepted connection from: ", addr
         try:
-            email = None
+            #email = None
             while True:
                 request_message, request_params = self.receive(client)
                 # Get response message and parameters
