@@ -5,43 +5,9 @@ __doc__  =  """
     * This module has DataStore class which is serilazble.
 """
 
-from config import DB_FILE
+from config import DB_FILE, ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD
 from datastore import SingletonDataStore
-import time
-
-class Account:
-
-    def __init__(self, name, email, password, account_type):
-        self.name = name
-        self.email = email
-        self.password = password
-        self.type = account_type
-        self.money = 0 
-        self.passbook = ""
-
-    def deposit(self, amount):
-        self.money += int(amount)
-        self.passbook = self.passbook + str(time.strftime("%d/%m/%Y")) + " " + str(time.strftime("%H.%M.%S")) + " " + "Credit Rs. " + str(amount) + " Debit Rs. 0 Balance Rs. " + str(self.money) + "\n"
-        return "Money deposit Succesfull! New Balance Rs. " + str(self.money)
-
-    def withDraw(self, amount):
-        if int(amount) <= self.money:
-            self.money -= int(amount)
-            self.passbook = self.passbook + str(time.strftime("%d/%m/%Y")) + " " + str(time.strftime("%H.%M.%S")) + " " + "Credit Rs. 0 Debit Rs. " + str(amount) + " Balance Rs. " + str(self.money) + "\n"
-            return "Money withdraw Succesfull! New Balance Rs. " + str(self.money)
-        return "Sorry you can withdraw max of Rs. " + str(self.money)
- 
-    def login(self, password):
-        if password == self.password:
-            return "Login Successful", self.type
-        return "Wrong password", "Invalid"      
-
-    def changePassword(self, password):
-            self.password = password
-            return "Password change Successfully"
-
-    def getPassbook(self):
-        return self.passbook.strip()        
+from account import Account
 
 class Bank(SingletonDataStore):
 
@@ -52,7 +18,9 @@ class Bank(SingletonDataStore):
         self.initialized = True
         super(Bank, self).__init__(filename=filename)
         self.accounts = dict()
+        self.accounts['admin@bcs.com'] = Account(ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD, 'Employee')
         self.init()
+        self.printLedger()
 
     def addAccount(self, account):
         with self.__class__._singleton_lock:
@@ -92,7 +60,7 @@ class Bank(SingletonDataStore):
                 msg = self.accounts[email].login(password)
                 self.save()
                 return msg
-            return "Wrong Username", "Non"
+            return "Login Unsuccessful", "Non"
 
     def changePassword(self, email, password):
          with self.__class__._singleton_lock:
@@ -106,12 +74,19 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].getPassbook()
-                self.save()
+                self.save() # why do we need this ? This is a read operation
                 return msg
             return "No account with this Email id"                          
 
-#if __name__ == '__main__':
+    def printLedger(self):
+        print 'Accounts in Bank:'
+        print '----------------'
+        for account in self.accounts.values():
+            print '    ' + str(account)
+        print '\n'
 
+if __name__ == '__main__':
+     Bank()
  #   obj1 = Bank()
     #obj2 = Bank(DB_FILE)
     #acc = Account("Nikhil", "nik72", "niks", "Employee")

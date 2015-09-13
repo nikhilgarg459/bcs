@@ -1,0 +1,9 @@
+DB_FILE = 'bank.db'
+TCP_IP = '127.0.0.1'
+TCP_PORT = 5010
+MAX_CONNECTIONS = 2
+MESSAGE_LENGTH = 1024
+
+ADMIN_NAME = 'admin'
+ADMIN_EMAIL = 'admin@bcs.com'
+ADMIN_PASSWORD = 'admin'
