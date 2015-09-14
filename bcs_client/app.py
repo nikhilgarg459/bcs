@@ -152,9 +152,15 @@ class BcsClient(Client):
 
 if __name__ == '__main__':
     client_app = BcsClient()
-    while True:    
-        client_app.run()
-        choice = client_app.prompt("Press 1 to exit: ")
-        if choice == '1':
-            break
-
+    while True:
+            try:
+                client_app.run()
+                choice = client_app.prompt("Press 1 to exit: ")
+                if choice == '1':
+                    break
+            except KeyboardInterrupt:
+                pass
+            finally:
+                print 'Keyboard Interupt, logout and closing connection..'
+                client_app.logout()
+                sys.exit(0)

@@ -28,14 +28,15 @@ class Server(object):
             parameters = ""
         client.send(str(msg + "~" + parameters))
 
-    def receive(self, client):
+    def receive(self, conn, addr):
         msg = None
         try:
-            msg = client.recv(MESSAGE_LENGTH)
+            msg = conn.recv(MESSAGE_LENGTH)
+            log.debug(msg)
             msg, params = msg.split("~")
             parameters = self.extractParams(params)
         except Exception as e:
-            log.error('Error while receing message from client')
+            log.error('Error while receiving message from %s' % addr)
             log.error(e)
             raise e
         return msg, parameters

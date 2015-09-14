@@ -25,7 +25,7 @@ class BcsServer(Server):
         log.info('Session started with %s' % addr)
         try:
             while True:
-                request_message, request_params = self.receive(conn)
+                request_message, request_params = self.receive(conn, addr)
                 # Get response message and parameters
                 response_params = None
                 response_msg = None
