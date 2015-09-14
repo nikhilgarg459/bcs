@@ -7,7 +7,6 @@ from bank import Account
 __doc__  =  """
 
 """
-
 import socket
 import time
 
@@ -21,9 +20,10 @@ class BcsServer(Server):
         Bank()
 
     def start(self, conn, addr):
-        self.respond(conn, "Welcome to Bcs",str("type=valid"))    
+        self.respond(conn, "connecting...",str("type=valid"))    
         log.info('Session started with %s' % addr)
         try:
+            login_params = None
             while True:
                 request_message, request_params = self.receive(conn, addr)
                 # Get response message and parameters
@@ -31,10 +31,12 @@ class BcsServer(Server):
                 response_msg = None
                 log.info('Request from %s -  %s' %(addr, request_message))
                 if request_message == "authenticate":
+                    login_params = request_params
                     response_msg, account_type = Bank().login(request_params['email'],request_params['password'])
                     response_params = str("type=" + account_type)
                 elif request_message == "logout":
                     response_msg = "Logout Successful"
+                    Bank().logged_ins.remove(login_params['email'])
                 else:
                     response_msg, response_params = self.bank_operation(request_message, request_params)
                 # Respond to client
@@ -45,6 +47,8 @@ class BcsServer(Server):
                     conn.close()
                     break
         except Exception as e:
+            if login_params['email'] in Bank().logged_ins:
+                Bank().logged_ins.remove(login_params['email'])
             log.error(e)
             log.error('Error after menu ' + str(addr))
         finally:  
@@ -72,4 +76,7 @@ class BcsServer(Server):
 
 if __name__ == '__main__':
     server_app = BcsServer()
-    server_app.listen()
+    try:
+        server_app.listen()
+    except KeyboardInterrupt:
+        log.info('Keyboard Interupt, Shutting down the server')

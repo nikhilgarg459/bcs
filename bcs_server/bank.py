@@ -19,6 +19,7 @@ class Bank(SingletonDataStore):
         self.initialized = True
         super(Bank, self).__init__(filename=filename)
         self.accounts = dict()
+        self.logged_ins = []
         self.accounts['admin@bcs.com'] = Account(ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD, 'Employee')
         self.init()
         self.printLedger()
@@ -33,6 +34,8 @@ class Bank(SingletonDataStore):
 
     def deleteAccount(self, email):
         with self.__class__._singleton_lock:
+            if email in self.logged_ins:
+                return "Account cannot be deleted as user is currently online."
             if email in self.accounts:
                 del self.accounts[email]
                 self.save()
@@ -59,8 +62,12 @@ class Bank(SingletonDataStore):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].login(password)
+                if "Login Successful" in msg:
+                    if email in self.logged_ins:
+                        return "Login Unsuccessful! Mupltiple logins with same email id", "Invalid"
+                    self.logged_ins.append(email)
                 return msg
-            return "Login Unsuccessful", "Non"
+            return "Login Unsuccessful", "Invalid"
 
     def changePassword(self, email, password):
          with self.__class__._singleton_lock:
@@ -87,11 +94,4 @@ class Bank(SingletonDataStore):
 
 if __name__ == '__main__':
      Bank()
- #   obj1 = Bank()
-    #obj2 = Bank(DB_FILE)
-    #acc = Account("Nikhil", "nik72", "niks", "Employee")
-    #acc = Account("Osho", "osh", "osh", "Customer")
-    #obj1.addAccount(acc)
-    #obj1.withDraw("aks", 500)
-    #obj1.deposit("aks", 500)
-    #print obj1 is obj2
+     print Bank().logged_ins
