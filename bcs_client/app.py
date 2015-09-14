@@ -15,16 +15,13 @@ __doc__  =  """
 import socket
 import sys
 
-# Configuration
-SERVER_IP = '127.0.0.1'
-SERVER_PORT = 5010
+
+# Add logging instead of print wherever print is not being used for CLI
 
 class BcsClient(Client):
 
-    def __init__(self, server_ip=SERVER_IP, server_port=SERVER_PORT):
-        # Calling constructor(__init__) of parent class
-        # @Nikhil we are passing child classname and child object(which is self) to super
-        super(BcsClient, self).__init__(server_ip, server_port)
+    def __init__(self):
+        super(BcsClient, self).__init__()
         self._session = None
 
     def run(self):
@@ -65,11 +62,10 @@ class BcsClient(Client):
 
         except Exception, e:
             print e.args
-            self.sock.close()
+            self.close_conn()
 
     def response(self): 
         reply = self.receive()
-        #print "From Server: " + reply
         msg, params = reply.split("~")
         print msg
         if params != "":
@@ -78,7 +74,6 @@ class BcsClient(Client):
         return ""   
 
     def request(self, msg, parameters):  
-        #print str("To Server: " + msg + ":" + parameters)
         self.send(str(msg + "~" + parameters))
 
     def getParam(self, params):
@@ -96,15 +91,13 @@ class BcsClient(Client):
     def login(self):
         self.email = self.prompt("Email id: ")
         self.password = self.prompt("Password: ")
-        #print "Trying to connect......."
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.server_ip, self.server_port))
+        self.connect()
         connection = self.response()
         if connection['type'] == "valid":
             self.request("authenticate", str("email=" + self.email + "," + "password=" + self.password))
             user = self.response()
             return user
-        self.sock.close()    
+        self.close_conn()    
         return connection    
 
     def getPassbook(self):        
@@ -137,7 +130,7 @@ class BcsClient(Client):
     def logout(self):
         self.request("logout", "")
         self.response()
-        self.sock.close()    
+        self.close_conn()   
 
     def deposit(self):                
         self.transact("deposit") 
