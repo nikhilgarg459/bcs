@@ -1,13 +1,14 @@
 #!usr/bin/env python
-#-*-coding:utf8-*-
-
-__doc__  =  """
-    * A Singleton data store class
-"""
+# -*-coding:utf8-*-
 
 import os
 import pickle
 import threading
+
+__doc__ = """
+    * A Singleton data store class
+"""
+
 
 class SingletonDataStore(object):
 
@@ -38,6 +39,7 @@ class SingletonDataStore(object):
         if not cls._singleton_instance:
             with cls._singleton_lock:
                 if not cls._singleton_instance:
-                    cls._singleton_instance = object.__new__(cls, *args, **kwargs)
+                    cls._singleton_instance = object.__new__(cls, *args,
+                                                             **kwargs)
                     cls._singleton_instance.initialized = False
         return cls._singleton_instance

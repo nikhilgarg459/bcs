@@ -1,14 +1,16 @@
 #!usr/bin/env python
-#-*-coding:utf8-*-
-
-__doc__  =  """
-    * This module has DataStore class which is serilazble.
-"""
+# -*-coding:utf8-*-
 
 from config import DB_FILE, ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD
+from datetime import datetime
 from datastore import SingletonDataStore
 from account import Account
 from server_logger import log
+
+__doc__ = """
+    * This module has DataStore class which is serilazble.
+"""
+
 
 class Bank(SingletonDataStore):
 
@@ -19,9 +21,10 @@ class Bank(SingletonDataStore):
         self.initialized = True
         super(Bank, self).__init__(filename=filename)
         self.accounts = dict()
-        self.logged_ins = []
-        self.accounts['admin@bcs.com'] = Account(ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD, 'Employee')
+        self.accounts['admin@bcs.com'] = Account(ADMIN_NAME, ADMIN_EMAIL,
+                                                 ADMIN_PASSWORD, 'Employee')
         self.init()
+        self.logged_ins = dict()
         self.printLedger()
 
     def addAccount(self, account):
@@ -35,7 +38,7 @@ class Bank(SingletonDataStore):
     def deleteAccount(self, email):
         with self.__class__._singleton_lock:
             if email in self.logged_ins:
-                return "Account cannot be deleted as user is currently online."
+                return "Account cannot be deleted as user is currently online"
             if email in self.accounts:
                 del self.accounts[email]
                 self.save()
@@ -64,34 +67,38 @@ class Bank(SingletonDataStore):
                 msg = self.accounts[email].login(password)
                 if "Login Successful" in msg:
                     if email in self.logged_ins:
-                        return "Login Unsuccessful! Mupltiple logins with same email id", "Invalid"
-                    self.logged_ins.append(email)
+                        return "Login Unsuccessful! Mupltiple logins with\
+                                same email id", "Invalid"
+                    self.logged_ins[email] = self.accounts[
+                                             email].datetime_now()
                 return msg
             return "Login Unsuccessful", "Invalid"
 
     def changePassword(self, email, password):
-         with self.__class__._singleton_lock:
+        with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].changePassword(password)
                 self.save()
                 return msg
             return "No account with this Email id"
-    
+
     def getPassbook(self, email):
         with self.__class__._singleton_lock:
             if email in self.accounts:
                 msg = self.accounts[email].getPassbook()
                 return msg
-            return "No account with this Email id"                          
+            return "No account with this Email id"
 
     def printLedger(self):
-        print '\n',' *** Accounts in Bank ***'.center(67,' '), '\n'
-        print '    %-15s %-20s  %-15s %-10s' % ('Name', 'Email', 'Password', 'Account Type')
-        print '    %-15s %-20s  %-15s %-10s' % ('----', '-----', '--------', '------------')
+        print '\n', ' *** Accounts in Bank ***'.center(67, ' '), '\n'
+        print '    %-15s %-20s  %-15s %-10s' % ('Name', 'Email',
+                                                'Password', 'Account Type')
+        print '    %-15s %-20s  %-15s %-10s' % ('----', '-----',
+                                                '--------', '------------')
         for account in self.accounts.values():
             print '    ' + str(account)
         print '\n'
 
 if __name__ == '__main__':
-     Bank()
-     print Bank().logged_ins
+    Bank()
+    print Bank().logged_ins

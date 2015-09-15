@@ -1,19 +1,20 @@
 #!usr/bin/env python
-#-*-coding:utf8-*-
-
-__doc__  =  """
-    * This module provides a general client class which can be extended to
-       use in any application that involves sending messages using sockets.
-"""
+# -*-coding:utf8-*-
 
 import socket
+from client_logger import setup_logging, getLogger
+
+__doc__ = """
+    * This module provides a general client class which can be extended to
+      use in any application that involves sending messages using sockets.
+"""
+
 
 # Configuration
 MESSAGE_LENGTH = 1024
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 5010
 
-from client_logger import setup_logging, getLogger
 
 class Client(object):
 
@@ -21,7 +22,7 @@ class Client(object):
         # It's a good practice to declare all object variables in init
         self.server_ip = server_ip
         self.server_port = server_port
-        self.sock = None # this was not declared
+        self.sock = None  # this was not declared
         self.port = None
         self.ip = None
         self.log = None
@@ -38,13 +39,14 @@ class Client(object):
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         val = self.sock.connect((self.server_ip, self.server_port))
-        self.ip, self.port =  self.sock.getsockname()
+        self.ip, self.port = self.sock.getsockname()
         # Below method gives us server ip and port
         self.sock.getpeername()
         # Log files will be named by port numbers
         setup_logging(str(self.port))
         self.log = getLogger(str(self.port))
-        self.log.info('Successfully connected to the server at %s:%s' % (self.server_ip, self.server_port))
+        self.log.info('Successfully connected to the server at %s:%s' %
+                      (self.server_ip, self.server_port))
 
     def close_conn(self):
         self.log.info('Closing connection...')

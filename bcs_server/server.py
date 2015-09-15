@@ -1,16 +1,17 @@
 #!usr/bin/env python
-#-*-coding:utf8-*-
-
-__doc__ = """
-            This module provides a general server class which can be extended to
-       use in any application that involves sending messages using sockets.
-"""
+# -*-coding:utf8-*-
 
 import socket
 import thread
-
 from config import MESSAGE_LENGTH, TCP_IP, TCP_PORT, MAX_CONNECTIONS
 from server_logger import log
+
+__doc__ = """
+            This module provides a general server class which can be
+            extended to use in any application that involves sending
+            messages using sockets.
+"""
+
 
 class Server(object):
 
@@ -21,10 +22,9 @@ class Server(object):
         pass
 
     def respond(self, client, msg, parameters):
-        #print str("To client: " + msg + ":" + parameters)
         log.debug('msg: %s' % msg)
         log.debug('Parameters: %s' % parameters)
-        if parameters == None:
+        if parameters is None:
             parameters = ""
         client.send(str(msg + "~" + parameters))
 
@@ -53,7 +53,8 @@ class Server(object):
 
     def listen(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Following line prevents this: socket.error: [Errno 48] Address already in use
+        # Following line prevents this: socket.error:
+        # [Errno 48] Address already in use
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((TCP_IP, TCP_PORT))
         sock.listen(1)
@@ -62,7 +63,7 @@ class Server(object):
             # Accept connection from client.
             conn, addr = sock.accept()
             address = '%s:%s' % addr
-            log.info('Connection request from %s' % address)    
+            log.info('Connection request from %s' % address)
             if self.count == MAX_CONNECTIONS:
                 log.info('Max connections reached, request denied...')
                 conn.send("Server Busy,Try again Later~type=invalid")
