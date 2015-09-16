@@ -41,8 +41,7 @@ class Account:
             self.money -= int(amount)
             tx = (self.datetime_now(), 0, amount)
             self.passbook.append(tx)
-            return "Money withdraw Succesfull! New Balance Rs. "
-            + str(self.money)
+            return "Money withdraw Succesfull! New Balance Rs. " + str(self.money)
         return "Sorry you can withdraw max of Rs. " + str(self.money)
 
     def login(self, password):

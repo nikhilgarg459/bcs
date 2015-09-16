@@ -24,12 +24,14 @@ class BcsServer(Server):
         self.respond(conn, "connecting...", str("type=valid"))
         log.info('Session started with %s' % addr)
         login_params = None
+        debug = None
         try:
             while True:
                 request_message, request_params = self.receive(conn, addr)
                 # Get response message and parameters
                 response_params = None
                 response_msg = None
+                debug = False
                 log.info('Request from %s -  %s' % (addr, request_message))
                 if request_message == "authenticate":
                     login_params = request_params
@@ -41,12 +43,16 @@ class BcsServer(Server):
                     response_msg = "Logout Successful"
                     del Bank().logged_ins[login_params['email']]
                 else:
-                    response_msg, response_params = self.bank_operation(
+                    response_msg, response_params, debug = self.bank_operation(
                                                     request_message,
                                                     request_params)
                 # Respond to client
                 self.respond(conn, response_msg, response_params)
-                log.info('Response to %s - %s' % (addr, response_msg))
+                if debug:
+                    log.debug('Response to %s - %s' % (addr, response_msg))
+                    log.info('Passbook sent to %s' % (addr))    
+                else:
+                    log.info('Response to %s - %s' % (addr, response_msg))
                 # Close connection if authentication failed or logout
                 if ("Login Unsuccessful" in response_msg or
                         response_msg == "Logout Successful"):
@@ -64,6 +70,7 @@ class BcsServer(Server):
     def bank_operation(self, request_message, request_params):
         response_msg = None
         response_params = None
+        debug = False
         if request_message == "addAccount":
             response_msg = Bank().addAccount(Account(request_params['name'],
                                              request_params['email'],
@@ -83,7 +90,8 @@ class BcsServer(Server):
                                           request_params['amount'])
         elif request_message == "getPassbook":
             response_msg = Bank().getPassbook(request_params['email'])
-        return response_msg, response_params
+            debug = True
+        return response_msg, response_params, debug
 
 if __name__ == '__main__':
     server_app = BcsServer()
